@@ -4,7 +4,7 @@ ParcelMate runs as one Node service. In production it serves the built mobile we
 
 ## GitHub repository and Pages
 
-The source repository lives at `https://github.com/devharish1371/ParcelMate`. `docs/` contains a clearly labeled static product preview suitable for GitHub Pages. Configure Pages to publish `main` from `/docs`; its expected URL is `https://devharish1371.github.io/ParcelMate/` after GitHub enables the site. GitHub Pages cannot run the current Node API or persist the SQLite database. Publishing only `web/dist` to Pages would show a sign-in form whose `/api/*` calls fail. Do not present that as a working launch.
+The source repository lives at `https://github.com/devharish1371/ParcelMate`. GitHub Pages publishes the clearly labeled static preview from `main` `/docs` at `https://devharish1371.github.io/ParcelMate/`. GitHub Pages cannot run the current Node API or persist the SQLite database. Publishing only `web/dist` to Pages would show a sign-in form whose `/api/*` calls fail. Do not present that as a working launch.
 
 The current production build needs one HTTPS Node host with persistent storage and the verified email sender below. A separate Pages frontend would require a new cross-origin authentication and API design. Render's Free web service is not a safe drop-in for this SQLite build because its local files are lost on restarts and redeploys. A free hosted alternative needs a persistent database and backend adaptation before student accounts or credits can be used.
 

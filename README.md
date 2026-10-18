@@ -2,7 +2,7 @@
 
 ParcelMate is a mobile web app for verified VIT students to coordinate parcel collection within trusted circles. The current build has college-email sign-in, persistent student accounts, a one-time 2-credit grant, private friends and circles, parcel requests, trip announcements, and technical issue reports.
 
-The [`docs/` GitHub Pages preview](docs/index.html) introduces the design and clearly marks sign-in as pending. The live app still needs its API, persistent data, and a configured email sender.
+The [GitHub Pages preview](https://devharish1371.github.io/ParcelMate/) introduces the design and clearly marks sign-in as pending. The live app still needs its API, persistent data, and a configured email sender.
 
 ## Run locally
 
