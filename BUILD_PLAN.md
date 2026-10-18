@@ -39,6 +39,8 @@ Create the runnable web and server projects. Implement email account creation an
 
 ## Open items
 
-- A Resend API key and verified sender address are needed before verification emails can reach students. Local development can show a verification link in the browser.
-- The source target is `devharish1371/ParcelMate`. GitHub Pages cannot run the Node API or persist SQLite. A free backend will require a persistent hosted database and an authentication/API adaptation before Pages can serve the working app.
+- The source is published at `devharish1371/ParcelMate`, and GitHub Pages now hosts a clearly labeled preview from `docs/`.
+- The free production path is GitHub Pages for the app frontend, Cloudflare Workers and D1 for the API and persistent data, and Firebase Authentication email/password with verification emails. This replaces the current Node-only API and Resend magic links for production. Firebase's no-cost email-link sign-in limit is too low for general student use, so the free path uses verified email/password accounts.
+- The Worker must validate Firebase ID token signatures and claims, including `email_verified` and the exact `@vitstudent.ac.in` suffix, on every protected request. D1 must keep circle permissions and credit changes atomic on the server. The browser must never set a balance or choose an authorized user ID.
+- The Cloudflare and Firebase projects need to be created before deployment. Their public project configuration can be added to the web build; secrets and service credentials must stay out of Git.
 - College or courier permission for third-party parcel pickup remains a real-world policy dependency.

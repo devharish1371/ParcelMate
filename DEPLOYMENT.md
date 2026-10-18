@@ -8,6 +8,8 @@ The source repository lives at `https://github.com/devharish1371/ParcelMate`. Gi
 
 The current production build needs one HTTPS Node host with persistent storage and the verified email sender below. A separate Pages frontend would require a new cross-origin authentication and API design. Render's Free web service is not a safe drop-in for this SQLite build because its local files are lost on restarts and redeploys. A free hosted alternative needs a persistent database and backend adaptation before student accounts or credits can be used.
 
+The selected free migration path is Cloudflare Workers with D1 for the API and database, plus Firebase Authentication for verified college email accounts. This is an implementation plan, not an active deployment. The present Node service continues to work locally and on a host with persistent SQLite. See [BUILD_PLAN.md](BUILD_PLAN.md) for the authentication and credit rules that the migration must preserve.
+
 ## Before launch
 
 1. Run `npm ci`, `npm test`, and `npm run build` locally or in CI.
