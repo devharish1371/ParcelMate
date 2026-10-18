@@ -8,9 +8,10 @@ export default function Logo({ size = 42 }: { size?: number }) {
       aria-hidden="true"
       className="logo-symbol"
     >
-      <rect x="5" y="5" width="38" height="38" rx="11" stroke="currentColor" strokeWidth="2" />
-      <path d="M13 19.5h22M24 12v7.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-      <path d="M16 29h16m-5-5 5 5-5 5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+      <rect width="48" height="48" rx="12" fill="var(--logo-bg, #235b49)" />
+      <path d="M10 8h18.5C34.3 8 39 12.7 39 18.5H10V8Z" fill="var(--logo-top, #f7fbf8)" />
+      <path d="M25.2 20H39c0 5.8-4.7 10.5-10.5 10.5H20v-5.3c0-2.9 2.3-5.2 5.2-5.2Z" fill="var(--logo-leaf, #9bd2ad)" />
+      <path d="M10 30.5h10v4.3c0 2.9-2.3 5.2-5.2 5.2H10v-9.5Z" fill="var(--logo-leaf, #9bd2ad)" />
     </svg>
   );
 }
