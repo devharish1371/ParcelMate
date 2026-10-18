@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { createUserWithEmailAndPassword, onAuthStateChanged, reload, sendEmailVerification, signInWithEmailAndPassword, signOut as firebaseSignOut } from "firebase/auth";
+import { createUserWithEmailAndPassword, GoogleAuthProvider, onAuthStateChanged, reload, sendEmailVerification, signInWithEmailAndPassword, signInWithPopup, signOut as firebaseSignOut } from "firebase/auth";
 import Logo from "./Logo";
 import Network from "./Network";
 import Requests, { type ParcelRequest } from "./Requests";
@@ -110,7 +110,10 @@ export default function App() {
             await reload(current);
             if (!active) return;
             if (!current.emailVerified) setVerificationPending(true);
-            else await loadCloudProfile();
+            else {
+              await current.getIdToken(true);
+              await loadCloudProfile();
+            }
           }
         } catch (cause) {
           if (active) setError(cause instanceof Error ? cause.message : "Could not load your account.");
@@ -159,7 +162,10 @@ export default function App() {
         } else {
           const account = await signInWithEmailAndPassword(auth, normalized, password);
           await reload(account.user);
-          if (account.user.emailVerified) await loadCloudProfile();
+          if (account.user.emailVerified) {
+            await account.user.getIdToken(true);
+            await loadCloudProfile();
+          }
           else {
             setVerificationPending(true);
             setMessage("Verify your college email before using ParcelMate.");
@@ -201,6 +207,27 @@ export default function App() {
     }
   }
 
+  async function signInWithCollegeGoogle() {
+    setBusy(true);
+    setError("");
+    setMessage("");
+    try {
+      const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ hd: "vitstudent.ac.in", prompt: "select_account" });
+      const { user: account } = await signInWithPopup(auth, provider);
+      if (!account.email || !/^[^\s@]+@vitstudent\.ac\.in$/i.test(account.email)) {
+        await firebaseSignOut(auth);
+        throw new Error("Choose your @vitstudent.ac.in Google account.");
+      }
+      await account.getIdToken(true);
+      await loadCloudProfile();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Could not sign in with Google.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function signOut() {
     try {
       if (cloudMode) await firebaseSignOut(auth);
@@ -235,7 +262,7 @@ export default function App() {
           </div>
           {cloudMode && verificationPending ? <section className="card auth-card form-stack">
             <h2>Verify your college email</h2>
-            <p className="muted">Open the email from Firebase, then return here to continue.</p>
+            <p className="muted">Check your inbox and Spam for a message from ParcelMate, then return here.</p>
             <button className="button primary" disabled={busy} onClick={() => {
               setBusy(true);
               setError("");
@@ -244,6 +271,7 @@ export default function App() {
                 if (!current) throw new Error("Sign in again to continue.");
                 await reload(current);
                 if (!current.emailVerified) throw new Error("Your email is not verified yet.");
+                await current.getIdToken(true);
                 await loadCloudProfile();
               })().catch((cause) => setError(cause.message)).finally(() => setBusy(false));
             }}>{busy ? "Checking…" : "I've verified my email"}</button>
@@ -253,6 +281,7 @@ export default function App() {
                 .then(() => setMessage("A new verification email is on its way."))
                 .catch((cause) => setError(cause.message));
             }}>Resend verification email</button>
+            <button className="button secondary" disabled={busy} onClick={() => void signInWithCollegeGoogle()}>Continue with VIT Google account</button>
             <button className="text-link" onClick={() => void signOut()}>Use another account</button>
             {error && <p className="feedback error" role="alert">{error}</p>}
             {message && <p className="feedback" role="status">{message}</p>}
@@ -272,7 +301,8 @@ export default function App() {
               <button type="button" className={mode === "login" ? "selected" : ""} onClick={() => { setMode("login"); setError(""); }}>Log in</button>
             </div>
             <h2>{mode === "signup" ? "Verify your student account" : "Welcome back"}</h2>
-            <p className="muted">{cloudMode ? "Use your college email and a password. New accounts must verify the email first." : "We send a one-time link to your college email."}</p>
+            <p className="muted">{cloudMode ? "Sign in with your VIT Google account, or use your college email and a password." : "We send a one-time link to your college email."}</p>
+            {cloudMode && <button className="button secondary" type="button" disabled={busy} onClick={() => void signInWithCollegeGoogle()}>Continue with VIT Google account</button>}
             <form onSubmit={submitEmail} className="form-stack">
               {mode === "signup" && !cloudMode && (
                 <>

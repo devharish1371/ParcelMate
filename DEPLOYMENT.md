@@ -2,11 +2,11 @@
 
 ## Current hosted setup
 
-The frontend is built by [.github/workflows/pages.yml](.github/workflows/pages.yml) and served by GitHub Pages at `https://devharish1371.github.io/ParcelMate/`. It sends Firebase ID tokens to `https://parcelmate-api.parcelmate.workers.dev`. The Worker validates each token's signature, project, verified email, and exact `@vitstudent.ac.in` suffix before reading or changing D1 data. This path uses Firebase's verification email service and needs no sender domain or Resend key.
+The frontend is built by [.github/workflows/pages.yml](.github/workflows/pages.yml) and served by GitHub Pages at `https://devharish1371.github.io/ParcelMate/`. It sends Firebase ID tokens to `https://parcelmate-api.parcelmate.workers.dev`. The Worker validates each token's signature, project, verified email, and exact `@vitstudent.ac.in` suffix before reading or changing D1 data. Google sign-in verifies VIT Google Workspace accounts without an email message; email/password signup uses Firebase's verification email service. Neither needs a sender domain or Resend key.
 
 The D1 schema is [worker/schema.sql](worker/schema.sql). Apply it with `npm run db:remote`; it is written with `IF NOT EXISTS` for initial setup. Deploy the Worker with `npm run deploy:worker`. `wrangler.jsonc` holds the public D1 database ID and Firebase project ID. Wrangler OAuth credentials are stored outside this repository. The deployed API health endpoint is `/api/health`.
 
-Before inviting students, complete a real `@vitstudent.ac.in` signup and email verification, confirm a second student's friend/circle/request/credit flow, and establish a D1 export and restore process. A support operator needs Cloudflare D1 access to review and update technical tickets; there is no public admin route.
+Before inviting students, enable the Google provider in Firebase Authentication, then complete a real `@vitstudent.ac.in` Google sign-in and profile. Also confirm a second student's friend/circle/request/credit flow and establish a D1 export and restore process. Email/password signup remains available, though delivery to the college inbox must be checked separately. A support operator needs Cloudflare D1 access to review and update technical tickets; there is no public admin route.
 
 ### Hosted support and backup
 
