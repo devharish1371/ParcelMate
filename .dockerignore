@@ -1,0 +1,12 @@
+node_modules
+node-cache
+web/dist
+server/data
+server/.env
+*.sqlite
+*.sqlite-*
+*.png
+*.make
+*.docx
+.git
+.DS_Store

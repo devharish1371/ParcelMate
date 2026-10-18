@@ -1,0 +1,39 @@
+**What the app does:**
+
+It's a student-to-student parcel collection app for our college. Sometimes students can't go to the parcel collection point because they're in class, busy or staying far away. Usually, they call their friends and ask them to collect the parcel. This app organises that process.
+
+**How it works:**
+
+1. Only verified college students can use the app.
+2. Students can add their friends from their contacts and create private circles like Hostel Friends and College Friends.
+3. If I can't collect my parcel, I can post a request in one of my circles.
+4. A friend can accept the request, collect my parcel and hand it over to me.
+5. There is no money involved. Instead, we use a credit system.
+
+**Credit system:**
+- Every student gets 2 credits when they register.
+- Requesting someone to collect a parcel costs 1 credit.
+- Helping someone collect a parcel earns 1 credit.
+- Credits are transferred only after the parcel is handed over and the requester confirms receiving it.
+- Students need credits to request help, so they also have a reason to help others.
+
+**One additional feature:**
+
+Students can select "I'm Going" to tell their friends that they're already going to the parcel collection point. If someone needs help, they can request collection during that trip.
+
+
+I need a mobile app with
+- Login and student verification
+- Home dashboard
+- Friends and private circles
+- Create parcel collection request
+- View and accept requests
+- Track collection and handover
+- Credit wallet
+- "I'm Going" feature
+- Profile and activity history
+
+The main user journeys are:
+1. Requesting a parcel collection.
+2. Helping a friend collect a parcel.
+3. Earning and using credits.

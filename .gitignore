@@ -1,0 +1,8 @@
+node_modules/
+node-cache/
+web/dist/
+server/data/*.sqlite
+server/data/*.sqlite-*
+.env
+.env.local
+.DS_Store
