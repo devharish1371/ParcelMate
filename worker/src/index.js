@@ -66,8 +66,17 @@ async function dispatch(request, env, identity, body) {
 export default {
   async fetch(request, env) {
     const requestedOrigin = request.headers.get("Origin");
-    const allowedOrigin = requestedOrigin === env.APP_ORIGIN ||
-      requestedOrigin === "http://127.0.0.1:5173" ? requestedOrigin : null;
+    const allowedOrigin = (() => {
+      if (!requestedOrigin) return null;
+      if (requestedOrigin === env.APP_ORIGIN) return requestedOrigin;
+      if (requestedOrigin === "http://127.0.0.1:5173") return requestedOrigin;
+      // Allow any Cloudflare Pages deployment (production + preview URLs)
+      try {
+        const { hostname } = new URL(requestedOrigin);
+        if (hostname.endsWith(".pages.dev")) return requestedOrigin;
+      } catch { /* invalid origin */ }
+      return null;
+    })();
     if (requestedOrigin && !allowedOrigin) return responseFor(fail("Origin is not allowed.", 403), null);
     if (request.method === "OPTIONS") {
       if (!allowedOrigin) return responseFor(fail("Origin is not allowed.", 403), null);
