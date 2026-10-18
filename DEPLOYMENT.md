@@ -8,6 +8,19 @@ The D1 schema is [worker/schema.sql](worker/schema.sql). Apply it with `npm run 
 
 Before inviting students, complete a real `@vitstudent.ac.in` signup and email verification, confirm a second student's friend/circle/request/credit flow, and establish a D1 export and restore process. A support operator needs Cloudflare D1 access to review and update technical tickets; there is no public admin route.
 
+### Hosted support and backup
+
+Run these commands from a trusted operator machine with Wrangler logged into the ParcelMate Cloudflare account. Ticket descriptions may contain personal information; keep exports and query output private.
+
+```bash
+npx wrangler d1 execute parcelmate --remote --command "SELECT id, category, status, description, created_at FROM support_tickets ORDER BY created_at DESC LIMIT 30"
+npx wrangler d1 execute parcelmate --remote --command "UPDATE support_tickets SET status = 'in_review', updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = 'TICKET_ID' AND status = 'received'"
+npx wrangler d1 execute parcelmate --remote --command "UPDATE support_tickets SET status = 'resolved', updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = 'TICKET_ID' AND status IN ('received', 'in_review')"
+npx wrangler d1 export parcelmate --remote --output /secure/private/location/parcelmate-backup.sql
+```
+
+Keep regular private exports outside the repository and test a restore before relying on them. The initial remote export was verified. Support status updates touch only `support_tickets`; they do not change parcel requests or credits.
+
 ## Legacy Node service
 
 ParcelMate can also run as one Node service. In that setup it serves the built mobile web app and `/api/*` from the same origin. Use one running instance with a persistent SQLite volume and an HTTPS reverse proxy.
