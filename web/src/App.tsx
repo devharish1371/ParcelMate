@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { createUserWithEmailAndPassword, GoogleAuthProvider, onAuthStateChanged, reload, sendEmailVerification, signInWithEmailAndPassword, signInWithPopup, signOut as firebaseSignOut } from "firebase/auth";
 import Logo from "./Logo";
+import InstallApp from "./InstallApp";
 import Network from "./Network";
 import Requests, { type ParcelRequest } from "./Requests";
 import Going from "./Going";
@@ -318,6 +319,7 @@ export default function App() {
             {message && <p className="feedback" role="status">{message}</p>}
             {developmentUrl && <a className="dev-link" href={developmentUrl}>Open local development link →</a>}
           </section>}
+          <InstallApp />
           <p className="auth-footer">Only verified VIT students · 2 starting credits · No payments</p>
         </main>
       </div>
@@ -367,6 +369,7 @@ export default function App() {
               <button className="card profile-link" onClick={() => setSupportOpen(true)}><span><strong>Report an issue</strong><small>Technical support for app problems</small></span><span aria-hidden="true">→</span></button>
               <section className="card detail-card"><div><span>Student ID</span><strong>{user.studentId}</strong></div><div><span>College email</span><strong>{user.email}</strong></div></section>
               <section className="card theme-card"><span><strong>Appearance</strong><small>{theme === "light" ? "Light mode" : "Dark mode"}</small></span><button className="small-toggle" onClick={() => setTheme(theme === "light" ? "dark" : "light")}>{theme === "light" ? "Switch to dark" : "Switch to light"}</button></section>
+              <InstallApp />
               <button className="button secondary" onClick={signOut}>Sign out</button>
               {error && <p className="feedback error" role="alert">{error}</p>}
             </>

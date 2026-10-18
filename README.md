@@ -4,6 +4,10 @@ ParcelMate is a mobile web app for verified VIT students to coordinate parcel co
 
 The web app is deployed through GitHub Pages at [devharish1371.github.io/ParcelMate](https://devharish1371.github.io/ParcelMate/). Its API runs on [Cloudflare Workers](https://parcelmate-api.parcelmate.workers.dev/api/health) with D1 storage. Firebase Authentication supports VIT Google sign-in and college-email/password signup with verification, so this hosted path does not need Resend or a sender domain.
 
+## Install on a phone
+
+Open the Pages link in a phone browser and tap **Install ParcelMate** in the app. On Android Chrome, this can open the browser's install prompt; Chrome's menu also offers **Install app** or **Add to Home screen**. On iPhone, open the link in Safari, tap **Share**, then **Add to Home Screen**. An installed copy opens in its own window. The install provides a home-screen launcher and cached app shell; accounts and parcel data still need an internet connection.
+
 ## Run locally
 
 Requires Node.js 24 or newer.
