@@ -1,14 +1,24 @@
 # ParcelMate deployment
 
-ParcelMate runs as one Node service. In production it serves the built mobile web app and `/api/*` from the same origin. Use one running instance with a persistent SQLite volume. Put an HTTPS reverse proxy in front of it.
+## Current hosted setup
 
-## GitHub repository and Pages
+The frontend is built by [.github/workflows/pages.yml](.github/workflows/pages.yml) and served by GitHub Pages at `https://devharish1371.github.io/ParcelMate/`. It sends Firebase ID tokens to `https://parcelmate-api.parcelmate.workers.dev`. The Worker validates each token's signature, project, verified email, and exact `@vitstudent.ac.in` suffix before reading or changing D1 data. This path uses Firebase's verification email service and needs no sender domain or Resend key.
 
-The source repository lives at `https://github.com/devharish1371/ParcelMate`. GitHub Pages publishes the clearly labeled static preview from `main` `/docs` at `https://devharish1371.github.io/ParcelMate/`. GitHub Pages cannot run the current Node API or persist the SQLite database. Publishing only `web/dist` to Pages would show a sign-in form whose `/api/*` calls fail. Do not present that as a working launch.
+The D1 schema is [worker/schema.sql](worker/schema.sql). Apply it with `npm run db:remote`; it is written with `IF NOT EXISTS` for initial setup. Deploy the Worker with `npm run deploy:worker`. `wrangler.jsonc` holds the public D1 database ID and Firebase project ID. Wrangler OAuth credentials are stored outside this repository. The deployed API health endpoint is `/api/health`.
+
+Before inviting students, complete a real `@vitstudent.ac.in` signup and email verification, confirm a second student's friend/circle/request/credit flow, and establish a D1 export and restore process. A support operator needs Cloudflare D1 access to review and update technical tickets; there is no public admin route.
+
+## Legacy Node service
+
+ParcelMate can also run as one Node service. In that setup it serves the built mobile web app and `/api/*` from the same origin. Use one running instance with a persistent SQLite volume and an HTTPS reverse proxy.
+
+## GitHub repository and Pages history
+
+The source repository lives at `https://github.com/devharish1371/ParcelMate`. The old `docs/` preview is retained as a design artifact. GitHub Pages cannot run the Node API or persist SQLite; the hosted frontend calls the Cloudflare Worker and D1 instead.
 
 The current production build needs one HTTPS Node host with persistent storage and the verified email sender below. A separate Pages frontend would require a new cross-origin authentication and API design. Render's Free web service is not a safe drop-in for this SQLite build because its local files are lost on restarts and redeploys. A free hosted alternative needs a persistent database and backend adaptation before student accounts or credits can be used.
 
-The selected free migration path is Cloudflare Workers with D1 for the API and database, plus Firebase Authentication for verified college email accounts. This is an implementation plan, not an active deployment. The present Node service continues to work locally and on a host with persistent SQLite. See [BUILD_PLAN.md](BUILD_PLAN.md) for the authentication and credit rules that the migration must preserve.
+The free hosted path is Cloudflare Workers with D1 and Firebase Authentication. The Node service continues to work locally and on a host with persistent SQLite. See [BUILD_PLAN.md](BUILD_PLAN.md) for the product rules shared by both paths.
 
 ## Before launch
 

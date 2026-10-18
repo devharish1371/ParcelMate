@@ -1,0 +1,17 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "parcelmate-api",
+  "main": "worker/src/index.js",
+  "compatibility_date": "2026-10-18",
+  "vars": {
+    "FIREBASE_PROJECT_ID": "parcelmate-a3fb2",
+    "APP_ORIGIN": "https://devharish1371.github.io"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "parcelmate",
+      "database_id": "a82b6e1a-5957-4244-9dd1-a65f139a315f"
+    }
+  ]
+}

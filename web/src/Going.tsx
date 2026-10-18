@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import Logo from "./Logo";
+import { apiFetch } from "./api";
 
 type Trip = {
   id: string;
@@ -17,7 +18,7 @@ type Trip = {
 type Circle = { id: string; name: string; members: { id: string }[] };
 
 async function api<T>(path: string, method = "GET", body?: object): Promise<T> {
-  const response = await fetch(path, {
+  const response = await apiFetch(path, {
     method,
     credentials: "same-origin",
     headers: { "Content-Type": "application/json" },

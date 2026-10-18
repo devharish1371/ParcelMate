@@ -39,8 +39,8 @@ Create the runnable web and server projects. Implement email account creation an
 
 ## Open items
 
-- The source is published at `devharish1371/ParcelMate`, and GitHub Pages now hosts a clearly labeled preview from `docs/`.
-- The free production path is GitHub Pages for the app frontend, Cloudflare Workers and D1 for the API and persistent data, and Firebase Authentication email/password with verification emails. This replaces the current Node-only API and Resend magic links for production. Firebase's no-cost email-link sign-in limit is too low for general student use, so the free path uses verified email/password accounts.
+- The source is published at `devharish1371/ParcelMate`. GitHub Pages builds the mobile web app through a workflow. The earlier `docs/` preview remains in the repository as a design artifact.
+- The free hosted path uses GitHub Pages for the frontend, Cloudflare Workers and D1 for the API and persistent data, and Firebase Authentication email/password with verification emails. The Node/SQLite/Resend path remains for local development and single-service hosting. Firebase's no-cost email-link sign-in limit is too low for general student use, so the hosted path uses verified email/password accounts.
 - The Worker must validate Firebase ID token signatures and claims, including `email_verified` and the exact `@vitstudent.ac.in` suffix, on every protected request. D1 must keep circle permissions and credit changes atomic on the server. The browser must never set a balance or choose an authorized user ID.
-- The Cloudflare and Firebase projects need to be created before deployment. Their public project configuration can be added to the web build; secrets and service credentials must stay out of Git.
+- The Cloudflare D1 database and Worker are deployed, and the Firebase project is configured. Public project IDs and the D1 binding appear in the source; service credentials stay out of Git. A real college mailbox flow and D1 backup/restore still need operational verification.
 - College or courier permission for third-party parcel pickup remains a real-world policy dependency.

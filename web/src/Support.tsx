@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
+import { apiFetch } from "./api";
 
 type Ticket = {
   id: string;
@@ -25,7 +26,7 @@ export default function Support({ onBack }: { onBack: () => void }) {
   const [notice, setNotice] = useState("");
 
   async function refresh() {
-    const response = await fetch("/api/support", { credentials: "same-origin" });
+    const response = await apiFetch("/api/support");
     const body = await response.json();
     if (!response.ok) throw new Error(body.error || "Could not load reports.");
     setTickets(body.tickets);
@@ -41,7 +42,7 @@ export default function Support({ onBack }: { onBack: () => void }) {
     setError("");
     setNotice("");
     try {
-      const response = await fetch("/api/support", {
+      const response = await apiFetch("/api/support", {
         method: "POST",
         credentials: "same-origin",
         headers: { "Content-Type": "application/json" },

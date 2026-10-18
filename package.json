@@ -2,13 +2,26 @@
   "name": "parcelmate",
   "private": true,
   "type": "module",
-  "workspaces": ["web", "server"],
+  "workspaces": [
+    "web",
+    "server"
+  ],
   "scripts": {
     "dev:web": "npm run dev --workspace web",
     "dev:server": "npm run dev --workspace server",
     "build": "npm run build --workspace web",
     "start": "node server/src/index.js",
     "support": "npm run support --workspace server --",
-    "test": "npm run test --workspace server"
+    "test": "npm run test --workspace server && node --test worker/test/*.test.js",
+    "dev:worker": "wrangler dev",
+    "deploy:worker": "wrangler deploy",
+    "db:local": "wrangler d1 execute parcelmate --local --file worker/schema.sql",
+    "db:remote": "wrangler d1 execute parcelmate --remote --file worker/schema.sql"
+  },
+  "devDependencies": {
+    "wrangler": "^4.151.1"
+  },
+  "dependencies": {
+    "jose": "^6.2.12"
   }
 }

@@ -1,4 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
+import { apiFetch } from "./api";
 
 type Friend = { id: string; name: string; email: string };
 type Invitation = {
@@ -19,7 +20,7 @@ type Circle = {
 type NetworkData = { friends: Friend[]; invitations: Invitation[]; circles: Circle[] };
 
 async function api<T>(path: string, method = "GET", body?: object): Promise<T> {
-  const response = await fetch(path, {
+  const response = await apiFetch(path, {
     method,
     credentials: "same-origin",
     headers: { "Content-Type": "application/json" },

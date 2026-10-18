@@ -6,3 +6,4 @@ server/data/*.sqlite-*
 .env
 .env.local
 .DS_Store
+.wrangler/

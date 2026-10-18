@@ -1,9 +1,12 @@
 import { useEffect, useState, type FormEvent } from "react";
+import { createUserWithEmailAndPassword, onAuthStateChanged, reload, sendEmailVerification, signInWithEmailAndPassword, signOut as firebaseSignOut } from "firebase/auth";
 import Logo from "./Logo";
 import Network from "./Network";
 import Requests, { type ParcelRequest } from "./Requests";
 import Going from "./Going";
 import Support from "./Support";
+import { apiFetch, apiJson, cloudMode } from "./api";
+import { auth } from "./firebase";
 
 type Wallet = { available: number; reserved: number; earned: number; spent: number };
 type User = { id: string; email: string; studentId: string; name: string; wallet: Wallet };
@@ -11,14 +14,7 @@ type CreditEntry = { reason: string; availableDelta: number; reservedDelta: numb
 type Tab = "home" | "requests" | "going" | "wallet" | "profile";
 
 async function api<T>(path: string, options?: RequestInit): Promise<T> {
-  const response = await fetch(path, {
-    credentials: "same-origin",
-    headers: { "Content-Type": "application/json", ...options?.headers },
-    ...options,
-  });
-  const body = await response.json();
-  if (!response.ok) throw new Error(body.error || "Request failed.");
-  return body as T;
+  return apiJson<T>(path, options);
 }
 
 const navigation: { id: Tab; label: string; icon: string }[] = [
@@ -46,6 +42,9 @@ export default function App() {
   const [name, setName] = useState("");
   const [studentId, setStudentId] = useState("");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [verificationPending, setVerificationPending] = useState(false);
+  const [needsProfile, setNeedsProfile] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -67,6 +66,20 @@ export default function App() {
     setUser(result.user);
   }
 
+  async function loadCloudProfile() {
+    const response = await apiFetch("/api/me");
+    if (response.status === 404) {
+      setNeedsProfile(true);
+      setVerificationPending(false);
+      return;
+    }
+    const body = await response.json();
+    if (!response.ok) throw new Error(body.error || "Could not load your account.");
+    setUser(body.user);
+    setNeedsProfile(false);
+    setVerificationPending(false);
+  }
+
   useEffect(() => {
     if (!user || tab !== "home") return;
     api<{ requests: ParcelRequest[] }>("/api/requests")
@@ -85,6 +98,28 @@ export default function App() {
 
   useEffect(() => {
     let active = true;
+    if (cloudMode) {
+      const unsubscribe = onAuthStateChanged(auth, async (current) => {
+        if (!active) return;
+        try {
+          if (!current) {
+            setUser(null);
+            setNeedsProfile(false);
+            setVerificationPending(false);
+          } else {
+            await reload(current);
+            if (!active) return;
+            if (!current.emailVerified) setVerificationPending(true);
+            else await loadCloudProfile();
+          }
+        } catch (cause) {
+          if (active) setError(cause instanceof Error ? cause.message : "Could not load your account.");
+        } finally {
+          if (active) setLoading(false);
+        }
+      });
+      return () => { active = false; unsubscribe(); };
+    }
     const token = new URLSearchParams(window.location.search).get("token");
     if (token) {
       window.history.replaceState({}, "", "/");
@@ -111,6 +146,27 @@ export default function App() {
     setMessage("");
     setDevelopmentUrl("");
     try {
+      if (cloudMode) {
+        const normalized = email.trim().toLowerCase();
+        if (!/^[^\s@]+@vitstudent\.ac\.in$/.test(normalized)) {
+          throw new Error("Use your @vitstudent.ac.in email address.");
+        }
+        if (mode === "signup") {
+          const account = await createUserWithEmailAndPassword(auth, normalized, password);
+          await sendEmailVerification(account.user);
+          setVerificationPending(true);
+          setMessage("Check your college inbox and verify your email, then return here.");
+        } else {
+          const account = await signInWithEmailAndPassword(auth, normalized, password);
+          await reload(account.user);
+          if (account.user.emailVerified) await loadCloudProfile();
+          else {
+            setVerificationPending(true);
+            setMessage("Verify your college email before using ParcelMate.");
+          }
+        }
+        return;
+      }
       const result = await api<{
         message: string;
         developmentVerificationUrl?: string;
@@ -127,15 +183,36 @@ export default function App() {
     }
   }
 
+  async function completeProfile(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setBusy(true);
+    setError("");
+    try {
+      const result = await api<{ user: User }>("/api/me", {
+        method: "POST",
+        body: JSON.stringify({ name, studentId }),
+      });
+      setUser(result.user);
+      setNeedsProfile(false);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Could not finish your profile.");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function signOut() {
     try {
-      await api("/api/auth/logout", { method: "POST" });
+      if (cloudMode) await firebaseSignOut(auth);
+      else await api("/api/auth/logout", { method: "POST" });
       setUser(null);
       setHomeRequests([]);
       setWalletEntries([]);
       setTab("home");
       setMessage("");
       setMode("login");
+      setNeedsProfile(false);
+      setVerificationPending(false);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : "Could not sign out.");
     }
@@ -156,27 +233,61 @@ export default function App() {
             <h1>ParcelMate</h1>
             <p>Ask trusted college friends to collect your parcel when you cannot make the trip.</p>
           </div>
-          <section className="card auth-card">
+          {cloudMode && verificationPending ? <section className="card auth-card form-stack">
+            <h2>Verify your college email</h2>
+            <p className="muted">Open the email from Firebase, then return here to continue.</p>
+            <button className="button primary" disabled={busy} onClick={() => {
+              setBusy(true);
+              setError("");
+              void (async () => {
+                const current = auth.currentUser;
+                if (!current) throw new Error("Sign in again to continue.");
+                await reload(current);
+                if (!current.emailVerified) throw new Error("Your email is not verified yet.");
+                await loadCloudProfile();
+              })().catch((cause) => setError(cause.message)).finally(() => setBusy(false));
+            }}>{busy ? "Checking…" : "I've verified my email"}</button>
+            <button className="button secondary" disabled={busy} onClick={() => {
+              const current = auth.currentUser;
+              if (current) void sendEmailVerification(current)
+                .then(() => setMessage("A new verification email is on its way."))
+                .catch((cause) => setError(cause.message));
+            }}>Resend verification email</button>
+            <button className="text-link" onClick={() => void signOut()}>Use another account</button>
+            {error && <p className="feedback error" role="alert">{error}</p>}
+            {message && <p className="feedback" role="status">{message}</p>}
+          </section> : cloudMode && needsProfile ? <section className="card auth-card">
+            <h2>Finish your student profile</h2>
+            <p className="muted">Your college email is verified. Add your name and student ID to join ParcelMate.</p>
+            <form onSubmit={completeProfile} className="form-stack">
+              <label>Full name<input value={name} onChange={(event) => setName(event.target.value)} required minLength={2} maxLength={80} autoComplete="name" /></label>
+              <label>Student ID<input value={studentId} onChange={(event) => setStudentId(event.target.value)} required minLength={3} maxLength={32} autoCapitalize="characters" /></label>
+              <button className="button primary" type="submit" disabled={busy}>{busy ? "Saving…" : "Create profile"}</button>
+            </form>
+            <button className="text-link" onClick={() => void signOut()}>Use another account</button>
+            {error && <p className="feedback error" role="alert">{error}</p>}
+          </section> : <section className="card auth-card">
             <div className="mode-switch" role="tablist" aria-label="Account action">
               <button type="button" className={mode === "signup" ? "selected" : ""} onClick={() => { setMode("signup"); setError(""); }}>Sign up</button>
               <button type="button" className={mode === "login" ? "selected" : ""} onClick={() => { setMode("login"); setError(""); }}>Log in</button>
             </div>
             <h2>{mode === "signup" ? "Verify your student account" : "Welcome back"}</h2>
-            <p className="muted">We send a one-time link to your college email.</p>
+            <p className="muted">{cloudMode ? "Use your college email and a password. New accounts must verify the email first." : "We send a one-time link to your college email."}</p>
             <form onSubmit={submitEmail} className="form-stack">
-              {mode === "signup" && (
+              {mode === "signup" && !cloudMode && (
                 <>
                   <label>Full name<input value={name} onChange={(event) => setName(event.target.value)} required minLength={2} autoComplete="name" /></label>
                   <label>Student ID<input value={studentId} onChange={(event) => setStudentId(event.target.value)} required autoCapitalize="characters" /></label>
                 </>
               )}
               <label>College email<input value={email} onChange={(event) => setEmail(event.target.value)} type="email" required placeholder="name@vitstudent.ac.in" autoComplete="email" /></label>
-              <button className="button primary" type="submit" disabled={busy}>{busy ? "Sending…" : "Send verification link"}</button>
+              {cloudMode && <label>Password<input value={password} onChange={(event) => setPassword(event.target.value)} type="password" required minLength={6} autoComplete={mode === "signup" ? "new-password" : "current-password"} /></label>}
+              <button className="button primary" type="submit" disabled={busy}>{busy ? "Please wait…" : cloudMode ? mode === "signup" ? "Create account" : "Log in" : "Send verification link"}</button>
             </form>
             {error && <p className="feedback error" role="alert">{error}</p>}
             {message && <p className="feedback" role="status">{message}</p>}
             {developmentUrl && <a className="dev-link" href={developmentUrl}>Open local development link →</a>}
-          </section>
+          </section>}
           <p className="auth-footer">Only verified VIT students · 2 starting credits · No payments</p>
         </main>
       </div>
