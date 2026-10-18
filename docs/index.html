@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f5f7f3" />
+    <title>ParcelMate · Private parcel pickup circles</title>
+    <meta name="description" content="A preview of ParcelMate, a private parcel pickup app for verified VIT students." />
+    <style>
+      :root { color-scheme: light dark; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      * { box-sizing: border-box; }
+      body { margin: 0; background: #f5f7f3; color: #1e3027; }
+      .wrap { width: min(1080px, calc(100% - 40px)); margin: auto; }
+      header { display: flex; justify-content: space-between; align-items: center; padding: 24px 0; gap: 20px; }
+      .brand { display: inline-flex; align-items: center; gap: 10px; font-size: 20px; font-weight: 750; letter-spacing: -.04em; text-decoration: none; color: inherit; }
+      .brand img { width: 34px; height: 34px; }
+      .badge { padding: 8px 12px; border: 1px solid #c9d8cd; border-radius: 100px; color: #3d6450; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+      main { padding: 68px 0 90px; }
+      .hero { display: grid; grid-template-columns: 1fr .84fr; align-items: center; gap: 64px; }
+      .eyebrow { color: #487b5e; font-weight: 750; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; }
+      h1 { font-size: clamp(44px, 7vw, 82px); letter-spacing: -.075em; line-height: 1.02; margin: 18px 0 24px; max-width: 700px; }
+      .lead { max-width: 540px; font-size: clamp(17px, 2vw, 20px); line-height: 1.6; color: #52655a; }
+      .notice { border: 1px solid #d1ddd2; background: #eaf1e8; border-radius: 20px; padding: 20px 22px; margin: 32px 0 0; max-width: 540px; line-height: 1.5; }
+      .notice strong { display: block; margin-bottom: 4px; }
+      .notice span { color: #536a5b; }
+      .actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 25px; }
+      .button { display: inline-flex; align-items: center; justify-content: center; min-height: 46px; border-radius: 12px; padding: 0 18px; text-decoration: none; font-weight: 700; }
+      .button.primary { background: #245c40; color: #fff; }
+      .button.secondary { border: 1px solid #bfd0c2; color: #245c40; }
+      .visual { display: flex; align-items: center; justify-content: center; min-height: 580px; border-radius: 32px; background: radial-gradient(circle at 50% 34%, #dfebdf, #e8eee6 60%, #d5e4d5); overflow: hidden; }
+      .visual img { display: block; width: min(300px, 80%); border-radius: 22px; box-shadow: 0 28px 80px #1b493733; }
+      .features { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 70px; }
+      .feature { padding: 22px; border-radius: 20px; border: 1px solid #dce5dc; background: #fff; }
+      .feature h2 { font-size: 17px; margin: 0 0 7px; }
+      .feature p { margin: 0; color: #607267; line-height: 1.5; }
+      footer { border-top: 1px solid #dce5dc; padding: 25px 0 35px; color: #64766b; font-size: 14px; }
+      @media (max-width: 760px) { main { padding-top: 30px; } .hero { grid-template-columns: 1fr; gap: 35px; } .visual { min-height: 480px; } .features { grid-template-columns: 1fr; margin-top: 36px; } }
+      @media (prefers-color-scheme: dark) { body { background: #14221a; color: #edf4ed; } .badge { border-color: #476b55; color: #a9d5b7; } .eyebrow { color: #9ed2ac; } .lead, .notice span, .feature p, footer { color: #b0c3b4; } .notice { background: #1d3829; border-color: #345b42; } .button.primary { background: #9dd0a9; color: #153222; } .button.secondary { border-color: #547a5c; color: #b7dfbd; } .visual { background: radial-gradient(circle at 50% 34%, #355442, #203a2b 70%, #1b2f23); } .feature { background: #1c2d21; border-color: #31513b; } footer { border-color: #31513b; } }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header><a class="brand" href="./"><img src="logo.svg" alt="" />ParcelMate</a><span class="badge">Product preview</span></header>
+      <main>
+        <div class="hero">
+          <div>
+            <div class="eyebrow">For VIT students</div>
+            <h1>Parcel pickup, within your circle.</h1>
+            <p class="lead">Ask a trusted friend to collect a parcel, or help someone when you are already going. ParcelMate keeps requests inside private circles and tracks each handoff.</p>
+            <div class="notice"><strong>Launch is in preparation</strong><span>This page previews the design. Student sign-in and shared accounts will open after the private backend and college email delivery are deployed.</span></div>
+            <div class="actions"><a class="button primary" href="https://github.com/devharish1371/ParcelMate">View the project</a><a class="button secondary" href="https://github.com/devharish1371/ParcelMate/blob/main/DEPLOYMENT.md">Deployment status</a></div>
+          </div>
+          <div class="visual"><img src="preview-light.png" alt="ParcelMate mobile app preview with credits and quick actions" /></div>
+        </div>
+        <div class="features">
+          <div class="feature"><h2>Verified students</h2><p>Accounts are limited to college email addresses ending in @vitstudent.ac.in.</p></div>
+          <div class="feature"><h2>Private circles</h2><p>Parcel requests are visible to the people you choose.</p></div>
+          <div class="feature"><h2>Simple credits</h2><p>Helping a friend earns a credit. Technical issue reports never affect credits.</p></div>
+        </div>
+      </main>
+      <footer>ParcelMate · Preview only</footer>
+    </div>
+  </body>
+</html>
