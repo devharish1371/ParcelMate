@@ -1,4 +1,4 @@
-import { externalTestingEnabled, verifiedIdentity } from "./auth.js";
+import { verifiedIdentity } from "./auth.js";
 import { first, fail, result } from "./db.js";
 import { createProfile, profile, walletEntries } from "./profile.js";
 import {
@@ -91,9 +91,6 @@ export default {
     const path = new URL(request.url).pathname;
     if (request.method === "GET" && path === "/api/health") {
       return responseFor(result({ ok: true }), allowedOrigin);
-    }
-    if (request.method === "GET" && path === "/api/access-policy") {
-      return responseFor(result({ externalTesting: externalTestingEnabled(env.TEST_EMAIL_ALLOWLIST) }), allowedOrigin);
     }
     if (!path.startsWith("/api/")) return responseFor(fail("Not found.", 404), allowedOrigin);
     const identity = await verifiedIdentity(request, env.FIREBASE_PROJECT_ID, env.TEST_EMAIL_ALLOWLIST);

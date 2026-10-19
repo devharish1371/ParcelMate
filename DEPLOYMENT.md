@@ -10,7 +10,7 @@ Before inviting students, enable the Google provider in Firebase Authentication,
 
 ### Temporary external test account
 
-Set `TEST_EMAIL_ALLOWLIST` as a Cloudflare Worker secret with the exact email addresses allowed for testing, separated by commas. Do not put those addresses in `wrangler.jsonc` or the frontend bundle. The Worker still requires a valid Firebase token with `email_verified: true`, and all other non-VIT addresses remain blocked. The public `/api/access-policy` endpoint reports only whether temporary access is enabled so the frontend can show the test sign-in option.
+Set `TEST_EMAIL_ALLOWLIST` as a Cloudflare Worker secret with the exact email addresses allowed for testing, separated by commas. Do not put those addresses in `wrangler.jsonc` or the frontend bundle. The Worker still requires a valid Firebase token with `email_verified: true`, and all other non-VIT addresses remain blocked. The app does not display testing status.
 
 ```bash
 npx wrangler secret put TEST_EMAIL_ALLOWLIST

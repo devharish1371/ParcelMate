@@ -13,7 +13,6 @@ type Wallet = { available: number; reserved: number; earned: number; spent: numb
 type User = { id: string; email: string; studentId: string; name: string; wallet: Wallet };
 type CreditEntry = { reason: string; availableDelta: number; reservedDelta: number; earnedDelta: number; spentDelta: number; createdAt: string };
 type Tab = "home" | "requests" | "going" | "wallet" | "profile";
-const isCollegeEmail = (value: string) => /^[^\s@]+@vitstudent\.ac\.in$/i.test(value);
 
 async function api<T>(path: string, options?: RequestInit): Promise<T> {
   return apiJson<T>(path, options);
@@ -51,21 +50,11 @@ export default function App() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [developmentUrl, setDevelopmentUrl] = useState("");
-  const [externalTesting, setExternalTesting] = useState(false);
-  const [authPolicyReady, setAuthPolicyReady] = useState(!cloudMode);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
     window.localStorage.setItem("parcelmate-theme", theme);
   }, [theme]);
-
-  useEffect(() => {
-    if (!cloudMode) return;
-    api<{ externalTesting: boolean }>("/api/access-policy")
-      .then((policy) => setExternalTesting(policy.externalTesting))
-      .catch(() => setExternalTesting(false))
-      .finally(() => setAuthPolicyReady(true));
-  }, []);
 
   function navigate(next: Tab) {
     setTab(next);
@@ -163,9 +152,6 @@ export default function App() {
     try {
       if (cloudMode) {
         const normalized = email.trim().toLowerCase();
-        if (!isCollegeEmail(normalized) && !externalTesting) {
-          throw new Error("Use your @vitstudent.ac.in email address.");
-        }
         if (mode === "signup") {
           const account = await createUserWithEmailAndPassword(auth, normalized, password);
           await sendEmailVerification(account.user);
@@ -225,9 +211,9 @@ export default function App() {
     setMessage("");
     try {
       const provider = new GoogleAuthProvider();
-      provider.setCustomParameters({ prompt: "select_account", ...(externalTesting ? {} : { hd: "vitstudent.ac.in" }) });
+      provider.setCustomParameters({ prompt: "select_account" });
       const { user: account } = await signInWithPopup(auth, provider);
-      if (!account.email || (!isCollegeEmail(account.email) && !externalTesting)) {
+      if (!account.email) {
         await firebaseSignOut(auth);
         throw new Error("Choose your @vitstudent.ac.in Google account.");
       }
@@ -293,16 +279,16 @@ export default function App() {
                 .then(() => setMessage("A new verification email is on its way."))
                 .catch((cause) => setError(cause.message));
             }}>Resend verification email</button>
-            <button className="button secondary" disabled={busy || !authPolicyReady} onClick={() => void signInWithGoogle()}>{externalTesting ? "Continue with Google" : "Continue with VIT Google account"}</button>
+            <button className="button secondary" disabled={busy} onClick={() => void signInWithGoogle()}>Continue with VIT Google account</button>
             <button className="text-link" onClick={() => void signOut()}>Use another account</button>
             {error && <p className="feedback error" role="alert">{error}</p>}
             {message && <p className="feedback" role="status">{message}</p>}
           </section> : cloudMode && needsProfile ? <section className="card auth-card">
             <h2>Finish your student profile</h2>
-            <p className="muted">Your email is verified. Add your name and {auth.currentUser?.email && !isCollegeEmail(auth.currentUser.email) ? "test ID" : "student ID"} to join ParcelMate.</p>
+            <p className="muted">Your college email is verified. Add your name and student ID to join ParcelMate.</p>
             <form onSubmit={completeProfile} className="form-stack">
               <label>Full name<input value={name} onChange={(event) => setName(event.target.value)} required minLength={2} maxLength={80} autoComplete="name" /></label>
-              <label>{auth.currentUser?.email && !isCollegeEmail(auth.currentUser.email) ? "Test ID" : "Student ID"}<input value={studentId} onChange={(event) => setStudentId(event.target.value)} required minLength={3} maxLength={32} autoCapitalize="characters" /></label>
+              <label>Student ID<input value={studentId} onChange={(event) => setStudentId(event.target.value)} required minLength={3} maxLength={32} autoCapitalize="characters" /></label>
               <button className="button primary" type="submit" disabled={busy}>{busy ? "Saving…" : "Create profile"}</button>
             </form>
             <button className="text-link" onClick={() => void signOut()}>Use another account</button>
@@ -313,8 +299,8 @@ export default function App() {
               <button type="button" className={mode === "login" ? "selected" : ""} onClick={() => { setMode("login"); setError(""); }}>Log in</button>
             </div>
             <h2>{mode === "signup" ? "Verify your student account" : "Welcome back"}</h2>
-            <p className="muted">{cloudMode ? externalTesting ? "VIT students and invited testers can use Google or email and password." : "Sign in with your VIT Google account, or use your college email and a password." : "We send a one-time link to your college email."}</p>
-            {cloudMode && <button className="button secondary" type="button" disabled={busy || !authPolicyReady} onClick={() => void signInWithGoogle()}>{externalTesting ? "Continue with Google" : "Continue with VIT Google account"}</button>}
+            <p className="muted">{cloudMode ? "Sign in with your VIT Google account, or use your college email and a password." : "We send a one-time link to your college email."}</p>
+            {cloudMode && <button className="button secondary" type="button" disabled={busy} onClick={() => void signInWithGoogle()}>Continue with VIT Google account</button>}
             <form onSubmit={submitEmail} className="form-stack">
               {mode === "signup" && !cloudMode && (
                 <>
@@ -322,16 +308,16 @@ export default function App() {
                   <label>Student ID<input value={studentId} onChange={(event) => setStudentId(event.target.value)} required autoCapitalize="characters" /></label>
                 </>
               )}
-              <label>{externalTesting ? "Email" : "College email"}<input value={email} onChange={(event) => setEmail(event.target.value)} type="email" required placeholder={externalTesting ? "Your invited email" : "name@vitstudent.ac.in"} autoComplete="email" /></label>
+              <label>College email<input value={email} onChange={(event) => setEmail(event.target.value)} type="email" required placeholder="name@vitstudent.ac.in" autoComplete="email" /></label>
               {cloudMode && <label>Password<input value={password} onChange={(event) => setPassword(event.target.value)} type="password" required minLength={6} autoComplete={mode === "signup" ? "new-password" : "current-password"} /></label>}
-              <button className="button primary" type="submit" disabled={busy || !authPolicyReady}>{busy ? "Please wait…" : cloudMode ? mode === "signup" ? "Create account" : "Log in" : "Send verification link"}</button>
+              <button className="button primary" type="submit" disabled={busy}>{busy ? "Please wait…" : cloudMode ? mode === "signup" ? "Create account" : "Log in" : "Send verification link"}</button>
             </form>
             {error && <p className="feedback error" role="alert">{error}</p>}
             {message && <p className="feedback" role="status">{message}</p>}
             {developmentUrl && <a className="dev-link" href={developmentUrl}>Open local development link →</a>}
           </section>}
           <InstallApp />
-          <p className="auth-footer">{externalTesting ? "Verified VIT students & invited testers" : "Only verified VIT students"} · 2 starting credits · No payments</p>
+          <p className="auth-footer">Only verified VIT students · 2 starting credits · No payments</p>
         </main>
       </div>
     );
@@ -374,8 +360,8 @@ export default function App() {
           {tab === "profile" && supportOpen && <Support onBack={() => setSupportOpen(false)} />}
           {tab === "profile" && !networkOpen && !supportOpen && (
             <>
-              <header className="topbar"><BrandLabel /><h1>Profile</h1><p>{isCollegeEmail(user.email) ? "Verified student account" : "Verified test account"}</p></header>
-              <section className="card profile-card"><div className="avatar">{user.name.split(" ").map((part) => part[0]).join("").slice(0, 2)}</div><div><strong>{user.name}</strong><p>{user.email}</p><span className="status-pill">{isCollegeEmail(user.email) ? "Verified student" : "Verified tester"}</span></div></section>
+              <header className="topbar"><BrandLabel /><h1>Profile</h1><p>Verified student account</p></header>
+              <section className="card profile-card"><div className="avatar">{user.name.split(" ").map((part) => part[0]).join("").slice(0, 2)}</div><div><strong>{user.name}</strong><p>{user.email}</p><span className="status-pill">Verified student</span></div></section>
               <button className="card profile-link" onClick={() => setNetworkOpen(true)}><span><strong>Friends & circles</strong><small>Invitations and private groups</small></span><span aria-hidden="true">→</span></button>
               <button className="card profile-link" onClick={() => setSupportOpen(true)}><span><strong>Report an issue</strong><small>Technical support for app problems</small></span><span aria-hidden="true">→</span></button>
               <section className="card detail-card"><div><span>Student ID</span><strong>{user.studentId}</strong></div><div><span>College email</span><strong>{user.email}</strong></div></section>
