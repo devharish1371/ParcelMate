@@ -1,8 +1,21 @@
 import { decodeProtectedHeader, importX509, jwtVerify } from "jose";
 
 const KEY_URL = "https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com";
+const COLLEGE_EMAIL = /^[^\s@]+@vitstudent\.ac\.in$/i;
 let certificates = {};
 let expiresAt = 0;
+
+export function externalTestingEnabled(allowlist) {
+  return typeof allowlist === "string" && allowlist.trim().length > 0;
+}
+
+export function allowedEmail(email, allowlist) {
+  if (typeof email !== "string") return false;
+  const normalized = email.trim().toLowerCase();
+  if (COLLEGE_EMAIL.test(normalized)) return true;
+  if (!externalTestingEnabled(allowlist)) return false;
+  return allowlist.split(",").some((entry) => entry.trim().toLowerCase() === normalized);
+}
 
 async function certificateFor(kid) {
   if (Date.now() >= expiresAt || !certificates[kid]) {
@@ -15,7 +28,7 @@ async function certificateFor(kid) {
   return certificates[kid];
 }
 
-export async function verifiedIdentity(request, projectId) {
+export async function verifiedIdentity(request, projectId, testEmailAllowlist) {
   const match = request.headers.get("Authorization")?.match(/^Bearer (\S+)$/);
   if (!match) return null;
   try {
@@ -31,7 +44,7 @@ export async function verifiedIdentity(request, projectId) {
     });
     if (typeof payload.sub !== "string" || !payload.sub ||
         typeof payload.email !== "string" || payload.email_verified !== true ||
-        !/^[^\s@]+@vitstudent\.ac\.in$/i.test(payload.email) ||
+        !allowedEmail(payload.email, testEmailAllowlist) ||
         typeof payload.auth_time !== "number" || payload.auth_time > Date.now() / 1000 ||
         typeof payload.iat !== "number" || payload.iat > Date.now() / 1000) return null;
     return { id: payload.sub, email: payload.email.toLowerCase() };

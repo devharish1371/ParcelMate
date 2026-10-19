@@ -22,7 +22,7 @@ Open `http://127.0.0.1:5173/`. Run the server and web commands in separate termi
 
 ## Hosted account setup
 
-The Pages build sets `VITE_API_ORIGIN` to the Cloudflare Worker URL. The Worker verifies Firebase ID tokens and requires `email_verified: true` plus the exact `@vitstudent.ac.in` email suffix on every protected request. New students can sign in with their VIT Google account or create an email/password account and verify its address; they then add a name and unique student ID. D1 grants two starting credits once when the profile is created.
+The Pages build sets `VITE_API_ORIGIN` to the Cloudflare Worker URL. The Worker verifies Firebase ID tokens and requires `email_verified: true` plus the exact `@vitstudent.ac.in` email suffix on every protected request, except for exact addresses in an operator-managed temporary test allowlist. New students can sign in with their VIT Google account or create an email/password account and verify its address; they then add a name and unique student ID. D1 grants two starting credits once when the profile is created.
 
 Firebase's public web configuration is in [web/src/firebase.ts](web/src/firebase.ts). Email/Password and Google must be enabled in Firebase Authentication, and `devharish1371.github.io` must be an authorized domain. The Cloudflare Worker and D1 binding are configured in [wrangler.jsonc](wrangler.jsonc). Run `npm test`, `npm run build`, and `npx wrangler deploy` for the hosted API; pushes to `main` build and deploy the Pages frontend.
 

@@ -1,4 +1,4 @@
-import { verifiedIdentity } from "./auth.js";
+import { externalTestingEnabled, verifiedIdentity } from "./auth.js";
 import { first, fail, result } from "./db.js";
 import { createProfile, profile, walletEntries } from "./profile.js";
 import {
@@ -92,8 +92,11 @@ export default {
     if (request.method === "GET" && path === "/api/health") {
       return responseFor(result({ ok: true }), allowedOrigin);
     }
+    if (request.method === "GET" && path === "/api/access-policy") {
+      return responseFor(result({ externalTesting: externalTestingEnabled(env.TEST_EMAIL_ALLOWLIST) }), allowedOrigin);
+    }
     if (!path.startsWith("/api/")) return responseFor(fail("Not found.", 404), allowedOrigin);
-    const identity = await verifiedIdentity(request, env.FIREBASE_PROJECT_ID);
+    const identity = await verifiedIdentity(request, env.FIREBASE_PROJECT_ID, env.TEST_EMAIL_ALLOWLIST);
     if (!identity) return responseFor(fail("Verified college sign-in required.", 401), allowedOrigin);
     try {
       const body = request.method === "POST" ? await readBody(request) : {};

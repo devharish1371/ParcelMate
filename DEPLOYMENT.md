@@ -2,11 +2,21 @@
 
 ## Current hosted setup
 
-The frontend is built by [.github/workflows/pages.yml](.github/workflows/pages.yml) and served by GitHub Pages at `https://devharish1371.github.io/ParcelMate/`. It sends Firebase ID tokens to `https://parcelmate-api.parcelmate.workers.dev`. The Worker validates each token's signature, project, verified email, and exact `@vitstudent.ac.in` suffix before reading or changing D1 data. Google sign-in verifies VIT Google Workspace accounts without an email message; email/password signup uses Firebase's verification email service. Neither needs a sender domain or Resend key.
+The frontend is built by [.github/workflows/pages.yml](.github/workflows/pages.yml) and served by GitHub Pages at `https://devharish1371.github.io/ParcelMate/`. It sends Firebase ID tokens to `https://parcelmate-api.parcelmate.workers.dev`. The Worker validates each token's signature, project, and verified email before reading or changing D1 data. It normally requires the exact `@vitstudent.ac.in` suffix; a temporary operator-managed allowlist can permit specific verified test accounts. Google sign-in verifies VIT Google Workspace accounts without an email message; email/password signup uses Firebase's verification email service. Neither needs a sender domain or Resend key.
 
 The D1 schema is [worker/schema.sql](worker/schema.sql). Apply it with `npm run db:remote`; it is written with `IF NOT EXISTS` for initial setup. Deploy the Worker with `npm run deploy:worker`. `wrangler.jsonc` holds the public D1 database ID and Firebase project ID. Wrangler OAuth credentials are stored outside this repository. The deployed API health endpoint is `/api/health`.
 
 Before inviting students, enable the Google provider in Firebase Authentication, then complete a real `@vitstudent.ac.in` Google sign-in and profile. Also confirm a second student's friend/circle/request/credit flow and establish a D1 export and restore process. Email/password signup remains available, though delivery to the college inbox must be checked separately. A support operator needs Cloudflare D1 access to review and update technical tickets; there is no public admin route.
+
+### Temporary external test account
+
+Set `TEST_EMAIL_ALLOWLIST` as a Cloudflare Worker secret with the exact email addresses allowed for testing, separated by commas. Do not put those addresses in `wrangler.jsonc` or the frontend bundle. The Worker still requires a valid Firebase token with `email_verified: true`, and all other non-VIT addresses remain blocked. The public `/api/access-policy` endpoint reports only whether temporary access is enabled so the frontend can show the test sign-in option.
+
+```bash
+npx wrangler secret put TEST_EMAIL_ALLOWLIST
+```
+
+When testing ends, restore VIT-only access immediately with `npx wrangler secret delete TEST_EMAIL_ALLOWLIST`. This takes effect without a frontend deployment. Existing test profiles remain stored but cannot access the API after the secret is removed.
 
 ### Hosted support and backup
 
