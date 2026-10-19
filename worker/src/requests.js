@@ -63,7 +63,9 @@ export async function createRequest(db, userId, input) {
     .bind(id(), requestId, userId, timestamp, requestId));
   try {
     const outcomes = await db.batch(statements);
-    if (outcomes[0].meta.changes !== 1) return fail("This trip is no longer available.", 404);
+    if (outcomes[0].meta.changes < 1) {
+      return fail(tripId ? "This trip is no longer available." : "Circle is unavailable.", 404);
+    }
     return result({ ok: true, requestId });
   } catch (error) {
     if (/CHECK constraint failed/.test(String(error))) return fail("You need 1 available credit to request help.", 409);
@@ -108,7 +110,7 @@ export async function transitionRequest(db, userId, requestId, action) {
       .bind(timestamp, requestId, userId);
   }
   const outcome = await update.run();
-  if (outcome.meta.changes !== 1) return fail("This step is no longer available.", 409);
+  if (outcome.meta.changes < 1) return fail("This step is no longer available.", 409);
   await run(db, "INSERT INTO request_events (id, request_id, actor_id, event_type, created_at) VALUES (?, ?, ?, ?, ?)",
     id(), requestId, userId, action, timestamp);
   return result({ ok: true, requestStatus: status });

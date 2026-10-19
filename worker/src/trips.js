@@ -53,5 +53,5 @@ export async function closeTrip(db, userId, tripId) {
         JOIN parcel_requests r ON r.id = tr.request_id
         WHERE tr.trip_id = trips.id AND r.status IN ('open', 'accepted', 'collected', 'handed_over'))`,
     now(), tripId, userId);
-  return outcome.meta.changes === 1 ? result({ ok: true }) : fail("A trip with active pickups cannot be closed.", 409);
+  return outcome.meta.changes > 0 ? result({ ok: true }) : fail("A trip with active pickups cannot be closed.", 409);
 }

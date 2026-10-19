@@ -20,7 +20,13 @@ function localD1() {
       return {
         first: async () => statement.get(...args) || null,
         all: async () => ({ results: statement.all(...args) }),
-        run: async () => ({ meta: { changes: statement.run(...args).changes } }),
+        run: async () => {
+          // D1 metadata counts trigger writes too, unlike StatementSync.run().changes.
+          const before = sqlite.prepare("SELECT total_changes() AS count").get().count;
+          statement.run(...args);
+          const after = sqlite.prepare("SELECT total_changes() AS count").get().count;
+          return { meta: { changes: after - before } };
+        },
       };
     },
   });
@@ -58,9 +64,11 @@ test("hosted handlers keep friends, requests, credits, trips, and support scoped
   assert.equal((await addCircleMember(db, a.id, circleId, b.id)).status, 200);
   assert.equal((await listNetwork(db, b.id)).body.circles[0].id, circleId);
 
-  const requestId = (await createRequest(db, a.id, {
+  const created = await createRequest(db, a.id, {
     circleId, parcelLabel: "Books", collectionPoint: "Main gate", note: "",
-  })).body.requestId;
+  });
+  assert.equal(created.status, 200);
+  const requestId = created.body.requestId;
   assert.equal((await profile(db, a)).body.user.wallet.reserved, 1);
   assert.equal((await listRequests(db, b.id)).body.requests[0].id, requestId);
   assert.equal((await transitionRequest(db, a.id, requestId, "accept")).status, 403);
@@ -70,6 +78,14 @@ test("hosted handlers keep friends, requests, credits, trips, and support scoped
   assert.equal((await transitionRequest(db, a.id, requestId, "confirm")).status, 200);
   assert.equal((await profile(db, a)).body.user.wallet.spent, 1);
   assert.equal((await profile(db, b)).body.user.wallet.earned, 1);
+
+  const cancellable = await createRequest(db, a.id, {
+    circleId, parcelLabel: "Parcel", collectionPoint: "Main gate", note: "",
+  });
+  assert.equal(cancellable.status, 200);
+  assert.equal((await transitionRequest(db, a.id, cancellable.body.requestId, "cancel")).status, 200);
+  assert.equal((await transitionRequest(db, a.id, cancellable.body.requestId, "cancel")).status, 409);
+  assert.equal((await profile(db, a)).body.user.wallet.available, 1);
 
   const trip = await createTrip(db, b.id, {
     circleId, collectionPoint: "Main gate", scheduledAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(), note: "",

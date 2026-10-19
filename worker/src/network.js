@@ -67,7 +67,7 @@ export async function respondToInvitation(db, userId, invitationId, decision) {
   const outcome = await run(db, `UPDATE friend_invitations SET status = ?, updated_at = ?
     WHERE id = ? AND recipient_id = ? AND status = 'pending'`,
     decision === "accept" ? "accepted" : "declined", now(), invitationId, userId);
-  if (outcome.meta.changes !== 1) return fail("Invitation is unavailable.", 404);
+  if (outcome.meta.changes < 1) return fail("Invitation is unavailable.", 404);
   return result({ ok: true });
 }
 
